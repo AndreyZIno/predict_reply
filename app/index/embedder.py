@@ -47,7 +47,9 @@ class SentenceTransformerEmbedder(Embedder):
         self.batch_size = config.batch_size
 
     def embed_texts(self, texts: Iterable[str]) -> List[List[float]]:
-        return self.model.encode(list(texts), batch_size=self.batch_size, convert_to_numpy=False).tolist()
+        vectors = self.model.encode(list(texts), batch_size=self.batch_size, convert_to_numpy=True)
+        # encode may return a numpy array or list; normalize to list of lists
+        return vectors.tolist() if hasattr(vectors, "tolist") else [list(v) for v in vectors]
 
 
 def create_embedder(config: IndexConfig) -> Embedder:

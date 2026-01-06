@@ -24,6 +24,12 @@ All commands run from the repository root:
   - Useful flags: `--exclude-channels general random`, `--drop-urls`, `--min-length 3`, `--redact`, `--skip-index`, `--reset-index`, `--embedding-backend sentence_transformers`, `--embedding-model all-MiniLM-L6-v2`, `--vector-backend chroma|faiss`.
 - Search retrieved examples: `python -m app.main search --query "talk about GPUs" [--context-file recent.txt]`
 - Generate a reply: `python -m app.main reply --prompt "Sure, let's meet" [--context-file thread.txt] [--show-retrieval]`
+- Fully local (no OpenAI): run ingest with local embeddings, then reply via Ollama:
+  ```bash
+  python -m app.main ingest "<export_path>" --self-id <id> --embedding-backend sentence_transformers --embedding-model all-MiniLM-L6-v2 --reset-index
+  python -m app.main reply --prompt "..." --llm-backend ollama --ollama-model llama3
+  ```
+  Make sure Ollama is running and the model is pulled (`ollama pull llama3`).
 
 Global options: `--debug`, `--persona-name`, `--top-k`, `--length short|medium|long`, `--tone casual|neutral|professional`, `--emoji-level none|low|normal`, `--no-honesty` (to disable clarifying-question behavior).
 

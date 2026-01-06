@@ -44,7 +44,7 @@ class LLMClient:
             "options": {"temperature": temperature, "num_predict": max_tokens},
             "stream": False,
         }
-        url = "http://localhost:11434/api/chat"
+        url = f"{self.config.ollama_host.rstrip('/')}/api/chat"
         resp = requests.post(url, json=payload, timeout=60)
         if resp.status_code != 200:
             raise RuntimeError(f"Ollama request failed: {resp.status_code} {resp.text}")

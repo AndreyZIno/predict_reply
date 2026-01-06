@@ -38,6 +38,8 @@ def retrieve(
     config: Optional[RetrievalConfig] = None,
 ) -> List[Dict]:
     cfg = config or RetrievalConfig()
+    if cfg.top_k <= 0:
+        return []
     embedding = embedder.embed_texts([query_text])[0]
     results = store.query(embedding, top_k=cfg.top_k)
     return _dedupe_results(results, cfg.dedupe_threshold)

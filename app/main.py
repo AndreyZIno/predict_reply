@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -29,7 +30,8 @@ def _build_app_config(args: argparse.Namespace) -> AppConfig:
     if args.embedding_model:
         config.index.model_name = args.embedding_model
         config.index.sentence_transformer_model = args.embedding_model
-    config.retrieval.top_k = args.top_k or config.retrieval.top_k
+    if args.top_k is not None:
+        config.retrieval.top_k = args.top_k
     if args.persona_name:
         config.generation.persona_name = args.persona_name
     config.generation.length = args.length or config.generation.length
@@ -37,6 +39,24 @@ def _build_app_config(args: argparse.Namespace) -> AppConfig:
     config.generation.emoji_level = args.emoji_level or config.generation.emoji_level
     config.generation.honesty = args.honesty
     config.generation.max_tokens = args.max_tokens or config.generation.max_tokens
+    if not args.embedding_backend and config.index.embedding_backend == "openai" and not os.getenv("OPENAI_API_KEY"):
+        # Fall back to local embeddings when no OpenAI key is present
+        config.index.embedding_backend = "sentence_transformers"
+    if config.index.embedding_backend == "sentence_transformers" and args.embedding_model:
+        config.index.sentence_transformer_model = args.embedding_model
+    elif args.embedding_model:
+        config.index.model_name = args.embedding_model
+    if not args.llm_backend and config.llm.backend == "openai" and not os.getenv("OPENAI_API_KEY"):
+        # Fall back to Ollama when no OpenAI key is present
+        config.llm.backend = "ollama"
+    if args.llm_backend:
+        config.llm.backend = args.llm_backend
+    if args.llm_model:
+        config.llm.model = args.llm_model
+    if args.ollama_model:
+        config.llm.ollama_model = args.ollama_model
+    if args.ollama_host:
+        config.llm.ollama_host = args.ollama_host
     config.paths.base_dir = Path(args.root).resolve() if args.root else config.paths.base_dir
     config.prepare()
     return config
@@ -135,6 +155,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--embedding-backend", help="Embedding backend (openai or sentence_transformers)")
     parser.add_argument("--embedding-model", help="Embedding model name")
     parser.add_argument("--vector-backend", help="Vector store backend (chroma or faiss)")
+    parser.add_argument("--llm-backend", choices=["openai", "ollama"], help="Generation backend")
+    parser.add_argument("--llm-model", help="Model name for OpenAI backend")
+    parser.add_argument("--ollama-model", help="Model name for Ollama backend (e.g., llama3)")
+    parser.add_argument("--ollama-host", help="Ollama host URL (default http://localhost:11434)")
     parser.add_argument("--persona-name", help="Optional persona name for prompt")
     parser.add_argument("--top-k", type=int, help="Override retrieval top_k")
     parser.add_argument("--length", choices=["short", "medium", "long"], help="Generation length")

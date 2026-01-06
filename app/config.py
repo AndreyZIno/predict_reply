@@ -52,10 +52,10 @@ class IngestConfig:
 
 @dataclass
 class IndexConfig:
-    embedding_backend: str = "openai"  # openai | sentence_transformers
-    vector_backend: str = "chroma"  # chroma | faiss
-    model_name: str = "text-embedding-3-small"
-    sentence_transformer_model: str = "all-MiniLM-L6-v2"
+    embedding_backend: str = field(default_factory=lambda: os.getenv("EMBEDDING_BACKEND", "openai"))  # openai | sentence_transformers
+    vector_backend: str = field(default_factory=lambda: os.getenv("VECTOR_BACKEND", "chroma"))  # chroma | faiss
+    model_name: str = field(default_factory=lambda: os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small"))
+    sentence_transformer_model: str = field(default_factory=lambda: os.getenv("SENTENCE_TRANSFORMER_MODEL", "all-MiniLM-L6-v2"))
     batch_size: int = 32
 
 
@@ -70,8 +70,8 @@ class RetrievalConfig:
 class GenerationConfig:
     persona_name: Optional[str] = None
     length: str = "medium"  # short | medium | long
-    tone: str = "casual"  # casual | neutral | professional
-    emoji_level: str = "low"  # none | low | normal
+    tone: str = "neutral"  # casual | neutral | professional
+    emoji_level: str = "none"  # none | low | normal
     honesty: bool = True
     max_tokens: int = 220
     temperature: float = 0.7
@@ -79,10 +79,11 @@ class GenerationConfig:
 
 @dataclass
 class LLMConfig:
-    backend: str = "openai"  # openai | ollama
-    model: str = "gpt-4o-mini"
-    openai_base_url: Optional[str] = None
-    ollama_model: str = "llama3"
+    backend: str = field(default_factory=lambda: os.getenv("LLM_BACKEND", "openai"))  # openai | ollama
+    model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    openai_base_url: Optional[str] = field(default_factory=lambda: os.getenv("OPENAI_BASE_URL"))
+    ollama_model: str = field(default_factory=lambda: os.getenv("OLLAMA_MODEL", "llama3"))
+    ollama_host: str = field(default_factory=lambda: os.getenv("OLLAMA_HOST", "http://localhost:11434"))
     max_retries: int = 3
 
 
@@ -102,4 +103,3 @@ class AppConfig:
         self.paths.raw_data_dir.mkdir(parents=True, exist_ok=True)
         self.paths.index_dir.mkdir(parents=True, exist_ok=True)
         self.paths.processed_data_path.parent.mkdir(parents=True, exist_ok=True)
-
